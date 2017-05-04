@@ -44,7 +44,9 @@ function Game(){
 	for(let i in this.chesses){
 		this.div.appendChild(this.chesses[i].div)
 		this.chesses[i].div.style.position='absolute'
-                let thisPosition=coordinateToPosition(game.chessCoordinate[i])
+                this.chesses[i].coordinate=game.chessCoordinate[i]
+                this.chesses[i].index=i
+                let thisPosition=coordinateToPosition(this.chesses[i].coordinate)
 		this.chesses[i].div.style.left=thisPosition[0]-chessWidth/2+'px'
 		this.chesses[i].div.style.top=thisPosition[1]-chessWidth/2+'px'
 	}
@@ -61,17 +63,23 @@ function Game(){
 		]
 	}
 	function positionToChess(p){
-		for(let i in game.chesses){
-                        let thisPosition=coordinateToPosition(game.chessCoordinate[i])
+		for(let c of game.chesses){
+                        let thisPosition=coordinateToPosition(c.coordinate)
 			if(
                                 (thisPosition[0]-p[0])*(thisPosition[0]-p[0])+
 				(thisPosition[1]-p[1])*(thisPosition[1]-p[1])<
 				chessWidth*chessWidth/4
 			){
-				return game.chesses[i]
+				return c
 			}
 		}
 	}
+	function coordinateToChess(p){
+		for(let c of game.chesses){
+			if( p[0]==c.coordinate[0]&&p[1]==c.coordinate[1])return c
+		}
+	}
+	this.div.addEventListener('mousedown',mousedown)
 	this.div.addEventListener('mousedown',mousedown)
 	function mousedown(event){
 		var position_div=[game.div.offsetLeft,game.div.offsetTop]
@@ -80,7 +88,8 @@ function Game(){
 		if(chessChoosen){
 			game.div.appendChild(chessChoosen.div)
 			console.log(chessChoosen)
-			var distance=[chessChoosen.position[0]-position_mouse[0],chessChoosen.position[1]-position_mouse[1]]
+                        var positionChoosen=coordinateToPosition(chessChoosen.coordinate)
+			var distance=[positionChoosen[0]-position_mouse[0],positionChoosen[1]-position_mouse[1]]
 			addEventListener('mousemove',mousemoveFunction)
 			addEventListener('mouseup',mouseupFunction)
 		}
@@ -91,7 +100,15 @@ function Game(){
 		function mouseupFunction(event){
 			removeEventListener('mousemove',mousemoveFunction)
 			removeEventListener('mouseup',mouseupFunction)
-			chessChoosen.position=[event.clientX-game.div.offsetLeft+distance[0],event.clientY-game.div.offsetTop+distance[1]]
+			var choosenPosition=[event.clientX-game.div.offsetLeft+distance[0],event.clientY-game.div.offsetTop+distance[1]]
+                        chessChoosen.coordinate=positionToCoordinate(choosenPosition)
+                        choosenPosition=coordinateToPosition(chessChoosen.coordinate)
+                        chessChoosen.div.style.left=choosenPosition[0]-chessWidth/2+'px'
+                        chessChoosen.div.style.top=choosenPosition[1]-chessWidth/2+'px'
 		}
 	}
+        function legalMove(c,cs,cd){
+                var ps=coordinateToPosition(cs)
+                var pd=coordinateToPosition(cd)
+        }
 }
