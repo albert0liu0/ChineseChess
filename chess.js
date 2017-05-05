@@ -7,7 +7,6 @@ function Chess(color,type){
 	this.color=color
 	this.type=type
         this.div=canvas()
-        this.position=[0,0]
 	function canvas(){
 		var canvas=document.createElement('canvas')
 		var context=canvas.getContext('2d')
