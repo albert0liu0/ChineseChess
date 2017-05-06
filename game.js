@@ -1,4 +1,8 @@
 function Game(player){
+    const socket=new WebSocket('ws://localhost:8080')
+    socket.addEventListener('message',function(event){
+        console.log(event.data)
+    })
     var game=this
     this.board=new Board
     this.div=document.createElement('div')
