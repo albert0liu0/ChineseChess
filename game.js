@@ -1,4 +1,4 @@
-function Game(){
+function Game(player){
     var game=this
     this.board=new Board
     this.div=document.createElement('div')
@@ -40,7 +40,14 @@ function Game(){
         new Chess(1,6),
         new Chess(1,6)
     ]
-    this.chessCoordinate=chessCoordinate.slice(0)
+    this.chessCoordinate=[]
+    for(let i=0;i<32;i++){
+        if(player===0)
+            this.chessCoordinate[i]=chessCoordinate[i]
+        else{
+            this.chessCoordinate[i]=chessCoordinate[(16+i)%32]
+        }
+    }
     for(let i in this.chesses){
         this.div.appendChild(this.chesses[i].div)
         this.chesses[i].div.style.position='absolute'
@@ -85,7 +92,7 @@ function Game(){
         var body=document.body
         var positionMouseInitial=[
             event.clientX+body.scrollLeft-game.div.offsetLeft,
-            event.clientY+body.scrollTop-game.div.offsetTop[1]
+            event.clientY+body.scrollTop-game.div.offsetTop
         ]
         var positionMouse=positionMouseInitial
         var chessChoosen=positionToChess(positionMouse)
@@ -98,8 +105,8 @@ function Game(){
             addEventListener('mouseup',mouseupFunction)
         }
         function mousemoveFunction(event){
-            chessChoosen.div.style.left=event.clientX-game.div.offsetLeft+distance[0]-chessWidth/2+'px'
-            chessChoosen.div.style.top=event.clientY-game.div.offsetTop+distance[1]-chessWidth/2+'px'
+            chessChoosen.div.style.left=event.clientX+body.scrollLeft-game.div.offsetLeft+distance[0]-chessWidth/2+'px'
+            chessChoosen.div.style.top=event.clientY+body.scrollTop-game.div.offsetTop+distance[1]-chessWidth/2+'px'
         }
         function mouseupFunction(event){
             removeEventListener('mousemove',mousemoveFunction)
