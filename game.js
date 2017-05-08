@@ -1,3 +1,5 @@
+var selfPlayer
+var game
 function Game(player){
     var currentPlayer=0
     game=this
@@ -9,45 +11,28 @@ function Game(player){
     this.div.appendChild(this.board.div)
     this.chesses=[
         new Chess(0,0),
-        new Chess(0,1),
-        new Chess(0,1),
-        new Chess(0,2),
-        new Chess(0,2),
-        new Chess(0,3),
-        new Chess(0,3),
-        new Chess(0,4),
-        new Chess(0,4),
-        new Chess(0,5),
-        new Chess(0,5),
-        new Chess(0,6),
-        new Chess(0,6),
-        new Chess(0,6),
-        new Chess(0,6),
-        new Chess(0,6),
+        new Chess(0,1), new Chess(0,1),
+        new Chess(0,2), new Chess(0,2),
+        new Chess(0,3), new Chess(0,3),
+        new Chess(0,4), new Chess(0,4),
+        new Chess(0,5), new Chess(0,5),
+        new Chess(0,6), new Chess(0,6),
+        new Chess(0,6), new Chess(0,6), new Chess(0,6),
         new Chess(1,0),
-        new Chess(1,1),
-        new Chess(1,1),
-        new Chess(1,2),
-        new Chess(1,2),
-        new Chess(1,3),
-        new Chess(1,3),
-        new Chess(1,4),
-        new Chess(1,4),
-        new Chess(1,5),
-        new Chess(1,5),
-        new Chess(1,6),
-        new Chess(1,6),
-        new Chess(1,6),
-        new Chess(1,6),
-        new Chess(1,6)
+        new Chess(1,1), new Chess(1,1),
+        new Chess(1,2), new Chess(1,2),
+        new Chess(1,3), new Chess(1,3),
+        new Chess(1,4), new Chess(1,4),
+        new Chess(1,5), new Chess(1,5),
+        new Chess(1,6), new Chess(1,6),
+        new Chess(1,6), new Chess(1,6), new Chess(1,6)
     ]
     this.chessCoordinate=[]
     for(let i=0;i<32;i++){
         if(player===0)
             this.chessCoordinate[i]=chessCoordinate[(16+i)%32]
-        else{
+        else
             this.chessCoordinate[i]=chessCoordinate[i]
-        }
     }
     for(let i in this.chesses){
         var chessDiv=this.chesses[i].div
@@ -57,9 +42,9 @@ function Game(player){
         }
         this.div.appendChild(chessDiv)
         this.chesses[i].div.style.position='absolute'
-    this.chesses[i].coordinate=game.chessCoordinate[i]
-    this.chesses[i].index=i
-    let thisPosition=coordinateToPosition(this.chesses[i].coordinate)
+        this.chesses[i].coordinate=game.chessCoordinate[i]
+        this.chesses[i].index=i
+        let thisPosition=coordinateToPosition(this.chesses[i].coordinate)
         this.chesses[i].div.style.left=thisPosition[0]-chessWidth/2+'px'
         this.chesses[i].div.style.top=thisPosition[1]-chessWidth/2+'px'
     }
@@ -94,7 +79,7 @@ function Game(player){
     }
     this.div.addEventListener('mousedown',mousedown)
     function mousedown(event){
-        if(player!==currentPlayer)return false
+        if(selfPlayer!==currentPlayer)return false
         var body=document.body
         var positionMouseInitial=[
             event.clientX+body.scrollLeft-game.div.offsetLeft,
@@ -103,6 +88,7 @@ function Game(player){
         var positionMouse=positionMouseInitial
         var chessChoosen=positionToChess(positionMouse)
         if(chessChoosen){
+            if(chessChoosen.color!==selfPlayer)return false
             game.div.appendChild(chessChoosen.div)
             console.log(chessChoosen)
             var positionChoosen=coordinateToPosition(chessChoosen.coordinate)
@@ -117,30 +103,28 @@ function Game(player){
         function mouseupFunction(event){
             removeEventListener('mousemove',mousemoveFunction)
             removeEventListener('mouseup',mouseupFunction)
-            var choosenPosition=[event.clientX-game.div.offsetLeft+distance[0],event.clientY+body.scrollTop-game.div.offsetTop+distance[1]]
+            var choosenPosition=[
+                event.clientX+body.scrollLeft-game.div.offsetLeft+distance[0],
+                event.clientY+body.scrollTop-game.div.offsetTop+distance[1]
+            ]
             var coordinateDestination=positionToCoordinate(choosenPosition)
             if(legalMove(chessChoosen,chessChoosen.coordinate,coordinateDestination)){
-                move(chessChoosen,coordinateDestination)
+               selfMove(chessChoosen,coordinateDestination)
             }
             else{
                 moveBack(chessChoosen)
             }
         }
     }
-    function legalMove(c,cs,cd){
-        var chessDestination=coordinateToChess(cd)
-        var checkEliminate=false
-        if(chessDestination){
-            var colorDestination=chessDestination.color
-            if(colorDestination===c.color)return false
-            checkEliminate=true
-        }
-        if(cd[0]<0||cd[0]>8||cd[1]<0||cd[1]>9)return false
-        return true
+
+    function eliminate(c){
+        c.coordinate=[-100,-100]
+        game.div.removeChild(c.div)
     }
     function move(c,cd){
-        socket.send(c.coordinate[0]+' '+c.coordinate[1]+' '+cd[0]+' '+cd[1])
-        cuurentPlayer=1-selfPlayer
+        var chessDestination=coordinateToChess(cd)
+        if(chessDestination)
+            eliminate(chessDestination)
         c.coordinate=cd
         var pd=coordinateToPosition(cd)
         c.div.style.left=pd[0]-chessWidth/2+'px'
@@ -151,8 +135,13 @@ function Game(player){
         c.div.style.left=cc[0]-chessWidth/2+'px'
         c.div.style.top=cc[1]-chessWidth/2+'px'
     }
+    function selfMove(c,cd){
+        socket.send(c.coordinate[0]+' '+c.coordinate[1]+' '+cd[0]+' '+cd[1])
+        currentPlayer=1-selfPlayer
+        move(c,cd)
+    }
     
-    this.opponentMove=function(event){
+    this.opponent=function(event){
         console.log('!')
         console.log(event.data)
         var data=event.data.split(' ')
@@ -163,10 +152,19 @@ function Game(player){
         cd[0]=8-cd[0]
         cd[1]=9-cd[1]
         var c=coordinateToChess(cs)
-        c.coordinate=cd
-        var pd=coordinateToPosition(cd)
-        c.div.style.left=pd[0]-chessWidth/2+'px'
-        c.div.style.top=pd[1]-chessWidth/2+'px'
+        move(c,cd)
         currentPlayer=selfPlayer
+    }
+
+    function legalMove(c,cs,cd){
+        var chessDestination=coordinateToChess(cd)
+        var checkEliminate=false
+        if(chessDestination){
+            var colorDestination=chessDestination.color
+            if(colorDestination===c.color)return false
+            checkEliminate=true
+        }
+        if(cd[0]<0||cd[0]>8||cd[1]<0||cd[1]>9)return false
+        return true
     }
 }

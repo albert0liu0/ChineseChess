@@ -1,3 +1,4 @@
+var socket
 console.log('!')
 window.addEventListener('load',function(event){
     socket=new WebSocket('ws://localhost:8080')
@@ -7,7 +8,7 @@ window.addEventListener('load',function(event){
         game=new Game(+(event.data))
         document.body.appendChild(game.div)
         console.log(game)
-        console.log(game.opponentMove)
-        socket.onmessage=game.opponentMove
+        console.log(game.opponent)
+        socket.onmessage=game.opponent
     }
 })
