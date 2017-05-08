@@ -1,9 +1,6 @@
 function Game(player){
-    const socket=new WebSocket('ws://localhost:8080')
-    socket.addEventListener('message',function(event){
-        console.log(event.data)
-    })
-    var game=this
+    var currentPlayer=0
+    game=this
     this.board=new Board
     this.div=document.createElement('div')
     this.div.style.lineHeight=0
@@ -47,13 +44,18 @@ function Game(player){
     this.chessCoordinate=[]
     for(let i=0;i<32;i++){
         if(player===0)
-            this.chessCoordinate[i]=chessCoordinate[i]
-        else{
             this.chessCoordinate[i]=chessCoordinate[(16+i)%32]
+        else{
+            this.chessCoordinate[i]=chessCoordinate[i]
         }
     }
     for(let i in this.chesses){
-        this.div.appendChild(this.chesses[i].div)
+        var chessDiv=this.chesses[i].div
+        if(selfPlayer!==this.chesses[i].color){
+            chessDiv.style.webkitTransform='rotate(180deg)'
+            console.log('!')
+        }
+        this.div.appendChild(chessDiv)
         this.chesses[i].div.style.position='absolute'
     this.chesses[i].coordinate=game.chessCoordinate[i]
     this.chesses[i].index=i
@@ -91,8 +93,8 @@ function Game(player){
         }
     }
     this.div.addEventListener('mousedown',mousedown)
-    this.div.addEventListener('mousedown',mousedown)
     function mousedown(event){
+        if(player!==currentPlayer)return false
         var body=document.body
         var positionMouseInitial=[
             event.clientX+body.scrollLeft-game.div.offsetLeft,
@@ -137,6 +139,8 @@ function Game(player){
         return true
     }
     function move(c,cd){
+        socket.send(c.coordinate[0]+' '+c.coordinate[1]+' '+cd[0]+' '+cd[1])
+        cuurentPlayer=1-selfPlayer
         c.coordinate=cd
         var pd=coordinateToPosition(cd)
         c.div.style.left=pd[0]-chessWidth/2+'px'
@@ -146,5 +150,23 @@ function Game(player){
         var cc=coordinateToPosition(c.coordinate)
         c.div.style.left=cc[0]-chessWidth/2+'px'
         c.div.style.top=cc[1]-chessWidth/2+'px'
+    }
+    
+    this.opponentMove=function(event){
+        console.log('!')
+        console.log(event.data)
+        var data=event.data.split(' ')
+        var cs=data.slice(0,2)
+        var cd=data.slice(2,4)
+        cs[0]=8-cs[0]
+        cs[1]=9-cs[1]
+        cd[0]=8-cd[0]
+        cd[1]=9-cd[1]
+        var c=coordinateToChess(cs)
+        c.coordinate=cd
+        var pd=coordinateToPosition(cd)
+        c.div.style.left=pd[0]-chessWidth/2+'px'
+        c.div.style.top=pd[1]-chessWidth/2+'px'
+        currentPlayer=selfPlayer
     }
 }

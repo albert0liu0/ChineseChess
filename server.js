@@ -40,7 +40,9 @@ var srv=http.createServer(function(req,res){
 srv.listen('8080')
 const wsServer=new ws.Server({server:srv})
 wsServer.broadcast=function(data){
-    wss.clients.forEach(function(client) {
+    console.log(data)
+    wsServer.clients.forEach(function(client) {
+        console.log(client)
         if(client.readyState===ws.OPEN){
             client.send(data)
         }
@@ -48,5 +50,13 @@ wsServer.broadcast=function(data){
 }
 wsServer.on('connection',function(socket){
     socket.send(''+numPlayer)
+    socket.on('message',function(data){
+        console.log(data)
+        wsServer.clients.forEach(function(clientSocket) {
+            if(clientSocket.readyState===ws.OPEN&&clientSocket!=socket){
+                clientSocket.send(data)
+            }
+        })
+    })
     numPlayer++
 })
